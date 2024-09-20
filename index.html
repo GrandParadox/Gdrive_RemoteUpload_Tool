@@ -9,7 +9,7 @@
 <body>
     <h1>Remote Upload to Google Drive</h1>
     
-    <button id="authorize_button" style="display: none;"></button>
+    <button id="authorize_button" style="display: none;">Authorize Google Drive</button>
     <button id="signout_button" style="display: none;">Sign Out</button>
 
     <p>Enter a file URL to upload to Google Drive:</p>
@@ -34,17 +34,19 @@
                 callback: handleCredentialResponse
             });
 
-            window.google.accounts.id.renderButton(
-                authorizeButton,
-                { theme: "outline", size: "large" }
-            );
+            // Show the authorize button on page load
+            authorizeButton.style.display = 'block';
 
-            window.google.accounts.id.prompt();
+            // Set up click handler for the authorize button
+            authorizeButton.onclick = function() {
+                window.google.accounts.id.prompt();
+            };
         }
 
         function handleCredentialResponse(response) {
             const credential = response.credential;
-            uploadButton.style.display = 'block';
+            authorizeButton.style.display = 'none'; // Hide the authorize button after login
+            uploadButton.style.display = 'block'; // Show the upload button
 
             uploadButton.onclick = function () {
                 var fileUrl = document.getElementById("file_url").value;
