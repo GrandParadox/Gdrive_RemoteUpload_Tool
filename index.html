@@ -53,9 +53,16 @@
                     return;
                 }
 
-                // Fetch the file as a blob from the given URL
+                console.log("Fetching file from URL:", fileUrl);
+
                 fetch(fileUrl)
-                    .then(response => response.blob())
+                    .then(response => {
+                        console.log("Response:", response);
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.blob();
+                    })
                     .then(blob => {
                         var metadata = {
                             name: 'uploaded_file_from_url',
@@ -81,7 +88,7 @@
                         });
                     })
                     .catch(error => {
-                        content.innerText = "Error fetching file from URL: " + JSON.stringify(error, null, 2);
+                        content.innerText = "Error fetching file from URL: " + error.message;
                     });
             };
         }
