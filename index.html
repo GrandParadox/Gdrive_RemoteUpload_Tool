@@ -3,97 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote File Upload to Google Drive</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <title>Upload to Google Drive</title>
 </head>
 <body>
-    <h1>Remote Upload to Google Drive</h1>
+    <h1>Upload Files to Google Drive</h1>
+    <input type="text" id="fileUrl" placeholder="Enter file URL" />
+    <button id="uploadButton">Upload</button>
+    <button id="authButton">Authorize Google Drive</button>
     
-    <button id="authorize_button" style="display: block;">Authorize Google Drive</button>
-    <button id="signout_button" style="display: none;">Sign Out</button>
-
-    <p>Enter a file URL to upload to Google Drive:</p>
-    <input type="text" id="file_url" placeholder="Enter file URL">
-    <button id="upload_button" style="display: none;">Upload to Google Drive</button>
-
-    <pre id="content"></pre>
-
-    <script>
-        var CLIENT_ID = '118792209172-t63kcgvdksau4brmsa06f60hc69jp28u.apps.googleusercontent.com';
-        var API_KEY = 'AIzaSyAah9cWRJXVyrSdixL6pPSfdYsht7-fZnI';
-        var SCOPES = 'https://www.googleapis.com/auth/drive.file';
-
-        var authorizeButton = document.getElementById('authorize_button');
-        var signoutButton = document.getElementById('signout_button');
-        var uploadButton = document.getElementById('upload_button');
-        var content = document.getElementById('content');
-
-        function handleClientLoad() {
-            window.google.accounts.id.initialize({
-                client_id: CLIENT_ID,
-                callback: handleCredentialResponse
-            });
-        }
-
-        function handleCredentialResponse(response) {
-            const credential = response.credential;
-            authorizeButton.style.display = 'none'; // Hide the authorize button after login
-            uploadButton.style.display = 'block'; // Show the upload button
-
-            uploadButton.onclick = function () {
-                var fileUrl = document.getElementById("file_url").value;
-                if (!fileUrl) {
-                    alert("Please enter a valid file URL.");
-                    return;
-                }
-
-                console.log("Fetching file from URL:", fileUrl);
-
-                fetch(fileUrl)
-                    .then(response => {
-                        console.log("Response:", response);
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        var metadata = {
-                            name: 'uploaded_file_from_url',
-                            mimeType: blob.type
-                        };
-
-                        var form = new FormData();
-                        form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-                        form.append("file", blob);
-
-                        // Upload the file to Google Drive
-                        fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
-                            method: "POST",
-                            headers: new Headers({ "Authorization": "Bearer " + credential }),
-                            body: form
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            content.innerText = "File uploaded successfully! File ID: " + data.id;
-                        })
-                        .catch(error => {
-                            content.innerText = "Error uploading file: " + JSON.stringify(error, null, 2);
-                        });
-                    })
-                    .catch(error => {
-                        content.innerText = "Error fetching file from URL: " + error.message;
-                    });
-            };
-        }
-
-        // Show the authorize button when the client loads
-        handleClientLoad();
-
-        // Click handler for the authorize button
-        authorizeButton.onclick = function() {
-            window.google.accounts.id.prompt();
-        };
-    </script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
