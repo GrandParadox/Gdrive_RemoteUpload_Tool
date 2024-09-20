@@ -3,39 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload to Google Drive</title>
+    <title>Google Drive File Uploader</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
         }
-        input {
+        h1 {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
             width: 80%;
             padding: 10px;
             margin-bottom: 20px;
+            border: 2px solid #4caf50;
+            border-radius: 5px;
             font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: #2e7d32;
+            outline: none;
         }
         button {
             padding: 10px 20px;
             font-size: 16px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4caf50;
+            color: white;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
         }
         #progressContainer {
             width: 80%;
-            background-color: #f3f3f3;
+            background-color: #e0e0e0;
             margin: 20px auto;
+            border-radius: 5px;
             display: none;
         }
         #progressBar {
             width: 0;
             height: 20px;
             background-color: #4caf50;
+            border-radius: 5px;
         }
         #message {
             margin-top: 10px;
             font-size: 14px;
             color: gray;
+        }
+        @media (max-width: 600px) {
+            input[type="text"], button {
+                width: 95%;
+            }
         }
     </style>
 </head>
@@ -43,7 +75,7 @@
 
     <h1>Upload Files to Google Drive</h1>
     
-    <input type="text" id="fileUrl" placeholder="Enter file URL" />
+    <input type="text" id="fileUrl" placeholder="Enter file URL (image, video, etc.)" />
     <button id="uploadButton">Upload</button>
     <button id="authButton">Authorize Google Drive</button>
     
