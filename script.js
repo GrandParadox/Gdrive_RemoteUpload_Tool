@@ -33,33 +33,62 @@ document.getElementById('authButton').onclick = () => {
 
 document.getElementById('uploadButton').onclick = async () => {
     const fileUrl = document.getElementById('fileUrl').value;
+    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
+    const message = document.getElementById('message');
+    
     if (!fileUrl) {
         alert('Please enter a file URL');
         return;
     }
 
-    const response = await fetch(fileUrl);
-    const blob = await response.blob();
-    const metadata = {
-        name: fileUrl.split('/').pop(),
-        mimeType: blob.type,
-    };
+    // Show progress bar
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    message.innerText = 'Uploading...';
 
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', blob);
+    try {
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        const metadata = {
+            name: fileUrl.split('/').pop(),
+            mimeType: blob.type,
+        };
 
-    const uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-    const result = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: new Headers({ Authorization: 'Bearer ' + token }),
-        body: form,
-    });
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', blob);
 
-    if (result.ok) {
-        alert('File uploaded successfully!');
-    } else {
-        alert('Error uploading file.');
+        const uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+        
+        // Track the upload progress
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                message.innerText = 'Upload complete!';
+            } else {
+                message.innerText = 'Error uploading file!';
+            }
+        };
+
+        xhr.onerror = () => {
+            message.innerText = 'Upload failed. Please try again.';
+        };
+
+        xhr.send(form);
+        
+    } catch (error) {
+        message.innerText = 'Error: ' + error.message;
     }
 };
 
