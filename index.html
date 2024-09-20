@@ -4,14 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload to Google Drive</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #progressContainer {
+            width: 80%;
+            background-color: #f3f3f3;
+            margin: 20px auto;
+            display: none;
+        }
+        #progressBar {
+            width: 0;
+            height: 20px;
+            background-color: #4caf50;
+        }
+        #message {
+            margin-top: 10px;
+            font-size: 14px;
+            color: gray;
+        }
+    </style>
 </head>
 <body>
+
     <h1>Upload Files to Google Drive</h1>
+    
     <input type="text" id="fileUrl" placeholder="Enter file URL" />
     <button id="uploadButton">Upload</button>
     <button id="authButton">Authorize Google Drive</button>
     
+    <div id="progressContainer">
+        <div id="progressBar"></div>
+    </div>
+    
+    <p id="message"></p>
+
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="script.js"></script>
+
 </body>
 </html>
