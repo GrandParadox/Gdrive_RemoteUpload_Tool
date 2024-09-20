@@ -42,6 +42,14 @@ document.getElementById('uploadButton').onclick = async () => {
         return;
     }
 
+    // Validate file type (optional)
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.mp4', '.avi'];
+    const fileExtension = fileUrl.slice((Math.max(0, fileUrl.lastIndexOf(".")) || Infinity) + 1);
+    if (!validExtensions.includes('.' + fileExtension)) {
+        alert('Please enter a valid file URL (image or video)');
+        return;
+    }
+
     // Show progress bar
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
@@ -77,12 +85,12 @@ document.getElementById('uploadButton').onclick = async () => {
             if (xhr.status === 200) {
                 message.innerText = 'Upload complete!';
             } else {
-                message.innerText = 'Error uploading file!';
+                message.innerText = 'Error uploading file! Please try again.';
             }
         };
 
         xhr.onerror = () => {
-            message.innerText = 'Upload failed. Please try again.';
+            message.innerText = 'Upload failed. Please check your URL or network connection.';
         };
 
         xhr.send(form);
