@@ -15,11 +15,12 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            transition: background-color 0.3s;
         }
         h1 {
             margin-bottom: 20px;
         }
-        input[type="text"] {
+        input[type="text"], input[type="file"] {
             width: 80%;
             padding: 10px;
             margin-bottom: 20px;
@@ -64,6 +65,35 @@
             font-size: 14px;
             color: gray;
         }
+        #uploadedFiles {
+            width: 80%;
+            margin-top: 20px;
+            text-align: left;
+        }
+        #filePreview {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .filePreviewItem {
+            margin: 10px;
+        }
+        .loading {
+            display: none;
+            margin: 20px auto;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         @media (max-width: 600px) {
             input[type="text"], button {
                 width: 95%;
@@ -84,6 +114,12 @@
     </div>
     
     <p id="message"></p>
+    
+    <div id="loading" class="loading"><div class="spinner"></div></div>
+    
+    <div id="filePreview"></div>
+    
+    <div id="uploadedFiles"></div>
 
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="script.js"></script>
