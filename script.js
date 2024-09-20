@@ -36,19 +36,25 @@ document.getElementById('uploadButton').onclick = async () => {
     const progressBar = document.getElementById('progressBar');
     const progressContainer = document.getElementById('progressContainer');
     const message = document.getElementById('message');
+    const loading = document.getElementById('loading');
+    const filePreview = document.getElementById('filePreview');
+    const uploadedFiles = document.getElementById('uploadedFiles');
     
     if (!fileUrl) {
         alert('Please enter a file URL');
         return;
     }
 
-    // Validate file type (optional)
+    // Validate file type
     const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.mp4', '.avi'];
     const fileExtension = fileUrl.slice((Math.max(0, fileUrl.lastIndexOf(".")) || Infinity) + 1);
     if (!validExtensions.includes('.' + fileExtension)) {
         alert('Please enter a valid file URL (image or video)');
         return;
     }
+
+    // Show loading spinner
+    loading.style.display = 'block';
 
     // Show progress bar
     progressContainer.style.display = 'block';
@@ -63,6 +69,7 @@ document.getElementById('uploadButton').onclick = async () => {
             mimeType: blob.type,
         };
 
+        // Create a FormData object
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
         form.append('file', blob);
@@ -82,23 +89,47 @@ document.getElementById('uploadButton').onclick = async () => {
         };
 
         xhr.onload = () => {
+            loading.style.display = 'none'; // Hide loading spinner
             if (xhr.status === 200) {
                 message.innerText = 'Upload complete!';
+                displayUploadedFile(metadata.name);
             } else {
                 message.innerText = 'Error uploading file! Please try again.';
             }
         };
 
         xhr.onerror = () => {
+            loading.style.display = 'none'; // Hide loading spinner
             message.innerText = 'Upload failed. Please check your URL or network connection.';
         };
 
         xhr.send(form);
         
     } catch (error) {
+        loading.style.display = 'none'; // Hide loading spinner
         message.innerText = 'Error: ' + error.message;
     }
 };
 
-// Load the API client and auth2 library
-handleClientLoad();
+function displayUploadedFile(fileName) {
+    const uploadedFiles = document.getElementById('uploadedFiles');
+    const fileItem = document.createElement('div');
+    fileItem.innerText = `Uploaded: ${fileName}`;
+    uploadedFiles.appendChild(fileItem);
+}
+
+// Preview files before uploading
+document.getElementById('fileUrl').addEventListener('input', () => {
+    const fileUrl = document.getElementById('fileUrl').value;
+    const filePreview = document.getElementById('filePreview');
+    filePreview.innerHTML = ''; // Clear previous preview
+
+    if (fileUrl) {
+        const fileExtension = fileUrl.slice((Math.max(0, fileUrl.lastIndexOf(".")) || Infinity) + 1);
+        const previewItem = document.createElement('div');
+        previewItem.className = 'filePreviewItem';
+
+        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+            const img = document.createElement('img');
+            img.src = fileUrl;
+            img.style.width = '100px';
