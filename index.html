@@ -13,14 +13,15 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            height: auto;
             margin: 0;
+            padding: 20px;
             transition: background-color 0.3s;
         }
         h1 {
             margin-bottom: 20px;
         }
-        input[type="text"], input[type="file"] {
+        input[type="text"] {
             width: 80%;
             padding: 10px;
             margin-bottom: 20px;
@@ -78,6 +79,11 @@
         .filePreviewItem {
             margin: 10px;
         }
+        img {
+            width: 100px;
+            height: auto;
+            border-radius: 5px;
+        }
         .loading {
             display: none;
             margin: 20px auto;
@@ -93,6 +99,18 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        .drop-area {
+            border: 2px dashed #4caf50;
+            padding: 20px;
+            width: 80%;
+            text-align: center;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .drop-area.active {
+            display: block;
         }
         @media (max-width: 600px) {
             input[type="text"], button {
@@ -120,6 +138,10 @@
     <div id="filePreview"></div>
     
     <div id="uploadedFiles"></div>
+    
+    <div id="dropArea" class="drop-area">
+        Drag and drop files here to upload
+    </div>
 
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="script.js"></script>
