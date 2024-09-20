@@ -37,7 +37,6 @@ document.getElementById('uploadButton').onclick = async () => {
     const progressContainer = document.getElementById('progressContainer');
     const message = document.getElementById('message');
     const loading = document.getElementById('loading');
-    const filePreview = document.getElementById('filePreview');
     const uploadedFiles = document.getElementById('uploadedFiles');
     
     if (!fileUrl) {
@@ -45,7 +44,6 @@ document.getElementById('uploadButton').onclick = async () => {
         return;
     }
 
-    // Validate file type
     const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.mp4', '.avi'];
     const fileExtension = fileUrl.slice((Math.max(0, fileUrl.lastIndexOf(".")) || Infinity) + 1);
     if (!validExtensions.includes('.' + fileExtension)) {
@@ -53,10 +51,7 @@ document.getElementById('uploadButton').onclick = async () => {
         return;
     }
 
-    // Show loading spinner
     loading.style.display = 'block';
-
-    // Show progress bar
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
     message.innerText = 'Uploading...';
@@ -69,14 +64,12 @@ document.getElementById('uploadButton').onclick = async () => {
             mimeType: blob.type,
         };
 
-        // Create a FormData object
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
         form.append('file', blob);
 
         const uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-        
-        // Track the upload progress
+
         const xhr = new XMLHttpRequest();
         xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('Authorization', 'Bearer ' + token);
@@ -89,7 +82,7 @@ document.getElementById('uploadButton').onclick = async () => {
         };
 
         xhr.onload = () => {
-            loading.style.display = 'none'; // Hide loading spinner
+            loading.style.display = 'none';
             if (xhr.status === 200) {
                 message.innerText = 'Upload complete!';
                 displayUploadedFile(metadata.name);
@@ -99,14 +92,14 @@ document.getElementById('uploadButton').onclick = async () => {
         };
 
         xhr.onerror = () => {
-            loading.style.display = 'none'; // Hide loading spinner
+            loading.style.display = 'none';
             message.innerText = 'Upload failed. Please check your URL or network connection.';
         };
 
         xhr.send(form);
         
     } catch (error) {
-        loading.style.display = 'none'; // Hide loading spinner
+        loading.style.display = 'none';
         message.innerText = 'Error: ' + error.message;
     }
 };
@@ -118,7 +111,7 @@ function displayUploadedFile(fileName) {
     uploadedFiles.appendChild(fileItem);
 }
 
-// Preview files before uploading
+// File preview
 document.getElementById('fileUrl').addEventListener('input', () => {
     const fileUrl = document.getElementById('fileUrl').value;
     const filePreview = document.getElementById('filePreview');
@@ -127,9 +120,4 @@ document.getElementById('fileUrl').addEventListener('input', () => {
     if (fileUrl) {
         const fileExtension = fileUrl.slice((Math.max(0, fileUrl.lastIndexOf(".")) || Infinity) + 1);
         const previewItem = document.createElement('div');
-        previewItem.className = 'filePreviewItem';
-
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-            const img = document.createElement('img');
-            img.src = fileUrl;
-            img.style.width = '100px';
+        preview
