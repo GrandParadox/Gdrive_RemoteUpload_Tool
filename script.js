@@ -39,14 +39,12 @@ function initClient() {
 function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
         token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-        document.getElementById('authButton').style.display = 'none';
-        document.getElementById('signOutButton').style.display = 'block'; // Show sign-out button
         document.getElementById('uploadSection').style.display = 'block'; // Show upload section
+        alert("You are signed in.");
     } else {
         token = null;
-        document.getElementById('authButton').style.display = 'block'; // Show authorize button
-        document.getElementById('signOutButton').style.display = 'none'; // Hide sign-out button
         document.getElementById('uploadSection').style.display = 'none'; // Hide upload section
+        alert("You are signed out.");
     }
 }
 
@@ -54,15 +52,16 @@ function updateSigninStatus(isSignedIn) {
  * Handle authorization button click (sign in)
  */
 document.getElementById('authButton').onclick = () => {
-    gapi.auth2.getAuthInstance().signIn();
+    gapi.auth2.getAuthInstance().signIn().then(() => {
+        updateSigninStatus(true);
+    });
 };
 
 /**
- * Handle sign-out button click
+ * Handle sign-out button click (always visible)
  */
 document.getElementById('signOutButton').onclick = () => {
     gapi.auth2.getAuthInstance().signOut().then(() => {
-        console.log('User signed out.');
         updateSigninStatus(false); // Manually update the UI to reflect sign-out
     });
 };
