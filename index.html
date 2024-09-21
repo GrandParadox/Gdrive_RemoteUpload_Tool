@@ -1,151 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://apis.google.com/js/api.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google Drive File Uploader</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: auto;
-            margin: 0;
-            padding: 20px;
-            transition: background-color 0.3s;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            width: 80%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 2px solid #4caf50;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        input[type="text"]:focus {
-            border-color: #2e7d32;
-            outline: none;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #4caf50;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #progressContainer {
-            width: 80%;
-            background-color: #e0e0e0;
-            margin: 20px auto;
-            border-radius: 5px;
-            display: none;
-        }
-        #progressBar {
-            width: 0;
-            height: 20px;
-            background-color: #4caf50;
-            border-radius: 5px;
-        }
-        #message {
-            margin-top: 10px;
-            font-size: 14px;
-            color: gray;
-        }
-        #uploadedFiles {
-            width: 80%;
-            margin-top: 20px;
-            text-align: left;
-        }
-        #filePreview {
-            display: flex;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        .filePreviewItem {
-            margin: 10px;
-        }
-        img {
-            width: 100px;
-            height: auto;
-            border-radius: 5px;
-        }
-        .loading {
-            display: none;
-            margin: 20px auto;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .drop-area {
-            border: 2px dashed #4caf50;
-            padding: 20px;
-            width: 80%;
-            text-align: center;
-            margin-top: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-        .drop-area.active {
-            display: block;
-        }
-        @media (max-width: 600px) {
-            input[type="text"], button {
-                width: 95%;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <h1>Upload Files to Google Drive</h1>
-    
-    <input type="text" id="fileUrl" placeholder="Enter file URL (image, video, etc.)" />
-    <button id="uploadButton">Upload</button>
-    <button id="authButton">Authorize Google Drive</button>
-    
-    <div id="progressContainer">
-        <div id="progressBar"></div>
-    </div>
-    
-    <p id="message"></p>
-    
-    <div id="loading" class="loading"><div class="spinner"></div></div>
-    
-    <div id="filePreview"></div>
-    
-    <div id="uploadedFiles"></div>
-    
-    <div id="dropArea" class="drop-area">
-        Drag and drop files here to upload
-    </div>
-
+    <link rel="stylesheet" href="styles.css"> <!-- Optional: Add your CSS file here -->
     <script src="https://apis.google.com/js/api.js"></script>
-    <script src="script.js"></script>
+</head>
+<body onload="handleClientLoad()">
+    <div class="container">
+        <h1>Upload Files to Google Drive</h1>
+        
+        <!-- Google Drive authorization button -->
+        <button id="authButton">Authorize Google Drive</button>
 
+        <!-- File URL input -->
+        <div id="uploadSection" style="display: none;">
+            <input type="text" id="fileUrl" placeholder="Enter file URL to upload">
+            <button id="uploadButton">Upload to Google Drive</button>
+        </div>
+
+        <!-- Progress bar -->
+        <div id="progressContainer" style="display: none;">
+            <div id="progressBar"></div>
+        </div>
+        
+        <!-- Message display -->
+        <p id="message"></p>
+
+        <!-- Loading spinner -->
+        <div id="loading" style="display:none;">Loading...</div>
+
+        <!-- Uploaded files list -->
+        <div id="uploadedFiles"></div>
+    </div>
+
+    <!-- JS File -->
+    <script src="script.js"></script>
 </body>
 </html>
