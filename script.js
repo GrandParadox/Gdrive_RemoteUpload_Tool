@@ -33,7 +33,7 @@ function initClient() {
 }
 
 /**
- * Called when the signed in status changes
+ * Called when the signed-in status changes
  * @param {boolean} isSignedIn
  */
 function updateSigninStatus(isSignedIn) {
@@ -46,6 +46,19 @@ function updateSigninStatus(isSignedIn) {
         document.getElementById('uploadSection').style.display = 'none'; // Hide upload section
         alert("You are signed out.");
     }
+    toggleSignOutButton(isSignedIn);
+}
+
+/**
+ * Toggle sign-out button visibility
+ */
+function toggleSignOutButton(isSignedIn) {
+    const signOutButton = document.getElementById('signOutButton');
+    if (isSignedIn) {
+        signOutButton.style.display = 'block'; // Always show sign-out button
+    } else {
+        signOutButton.style.display = 'block'; // Show sign-out button even if not signed in
+    }
 }
 
 /**
@@ -53,7 +66,9 @@ function updateSigninStatus(isSignedIn) {
  */
 document.getElementById('authButton').onclick = () => {
     gapi.auth2.getAuthInstance().signIn().then(() => {
-        updateSigninStatus(true);
+        updateSigninStatus(true);  // Manually update the UI after successful sign-in
+    }).catch((error) => {
+        console.error("Error during sign-in: ", error);
     });
 };
 
@@ -62,7 +77,10 @@ document.getElementById('authButton').onclick = () => {
  */
 document.getElementById('signOutButton').onclick = () => {
     gapi.auth2.getAuthInstance().signOut().then(() => {
-        updateSigninStatus(false); // Manually update the UI to reflect sign-out
+        updateSigninStatus(false);  // Manually update the UI after sign-out
+        alert("You have successfully signed out.");
+    }).catch((error) => {
+        console.error("Error during sign-out: ", error);
     });
 };
 
@@ -146,4 +164,4 @@ function displayUploadedFile(fileName) {
     const fileItem = document.createElement('div');
     fileItem.innerText = `Uploaded: ${fileName}`;
     uploadedFiles.appendChild(fileItem);
-}
+    }
