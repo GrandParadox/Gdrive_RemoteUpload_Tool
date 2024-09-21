@@ -86,33 +86,36 @@
 
     <script src="https://apis.google.com/js/api.js"></script>
     <script>
-        let CLIENT_ID = '118792209172-t63kcgvdksau4brmsa06f60hc69jp28u.apps.googleusercontent.com';
-        let API_KEY = 'AIzaSyAah9cWRJXVyrSdixL6pPSfdYsht7-fZnI';
-        let DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-        let SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        const CLIENT_ID = '118792209172-t63kcgvdksau4brmsa06f60hc69jp28u.apps.googleusercontent.com';
+        const API_KEY = 'AIzaSyAah9cWRJXVyrSdixL6pPSfdYsht7-fZnI';
+        const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-        let statusText = document.getElementById('status-text');
-        let loader = document.getElementById('loader');
+        const statusText = document.getElementById('status-text');
+        const loader = document.getElementById('loader');
         let isAuthorized = false;
 
         function handleClientLoad() {
             gapi.load('client:auth2', initClient);
         }
 
-        function initClient() {
-            gapi.client.init({
-                apiKey: API_KEY,
-                clientId: CLIENT_ID,
-                discoveryDocs: DISCOVERY_DOCS,
-                scope: SCOPES
-            }).then(() => {
+        async function initClient() {
+            try {
+                await gapi.client.init({
+                    apiKey: API_KEY,
+                    clientId: CLIENT_ID,
+                    discoveryDocs: DISCOVERY_DOCS,
+                    scope: SCOPES
+                });
+
                 const authInstance = gapi.auth2.getAuthInstance();
                 isAuthorized = authInstance.isSignedIn.get();
                 updateStatus();
                 authInstance.isSignedIn.listen(updateSigninStatus);
-            }, (error) => {
+            } catch (error) {
                 console.error('Error initializing Google API: ', error);
-            });
+                statusText.innerText = 'Error initializing Google API. Please check your configuration.';
+            }
         }
 
         function updateSigninStatus(isSignedIn) {
@@ -138,6 +141,7 @@
                     updateStatus();
                 }).catch((error) => {
                     console.error('Error signing in: ', error);
+                    statusText.innerText = 'Authorization failed. Please try again.';
                 });
             }
         }
@@ -151,7 +155,7 @@
         }
 
         async function uploadFileFromUrl() {
-            let fileUrl = document.getElementById('file-url').value;
+            const fileUrl = document.getElementById('file-url').value;
             if (!fileUrl) {
                 statusText.innerText = 'Please provide a file URL!';
                 return;
@@ -161,39 +165,39 @@
             statusText.innerText = 'Fetching file...';
 
             try {
-                let response = await fetch(fileUrl);
+                const response = await fetch(fileUrl);
                 if (!response.ok) {
-                    throw new Error('Failed to fetch file from the provided URL');
+                    throw new Error('Failed to fetch file from the provided URL. Check if the URL is valid.');
                 }
 
-                let blob = await response.blob();
-                let fileName = fileUrl.split('/').pop();
-                let fileType = blob.type || 'application/octet-stream';
+                const blob = await response.blob();
+                const fileName = fileUrl.split('/').pop();
+                const fileType = blob.type || 'application/octet-stream';
 
                 statusText.innerText = 'Uploading to Google Drive...';
 
-                let metadata = {
+                const metadata = {
                     'name': fileName,
                     'mimeType': fileType
                 };
 
-                let accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-                let form = new FormData();
+                const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+                const form = new FormData();
                 form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
                 form.append('file', blob);
 
-                let uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
                     method: 'POST',
                     headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
                     body: form
                 });
 
                 if (!uploadResponse.ok) {
-                    let uploadResult = await uploadResponse.json();
+                    const uploadResult = await uploadResponse.json();
                     throw new Error(uploadResult.error.message);
                 }
 
-                let uploadResult = await uploadResponse.json();
+                const uploadResult = await uploadResponse.json();
                 loader.style.display = 'none';
                 statusText.innerText = `Uploaded successfully! File ID: ${uploadResult.id}`;
             } catch (error) {
