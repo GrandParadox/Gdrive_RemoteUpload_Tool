@@ -29,7 +29,7 @@
             font-size: 1.8em;
             color: #ffcc00;
         }
-        input[type="text"], input[type="url"] {
+        input[type="url"] {
             width: 100%;
             padding: 10px;
             margin-top: 10px;
@@ -75,8 +75,9 @@
 <body>
     <div id="app">
         <h1>Google Drive Remote Uploader</h1>
-        <input type="url" id="file-url" placeholder="Paste file URL (e.g., https://example.com/image.jpg)">
+        <input type="url" id="file-url" placeholder="Paste file URL (e.g., https://example.com/video.mp4)">
         <button id="upload-url-button" onclick="uploadFileFromUrl()">Upload from URL</button>
+        <button id="authorize-button" onclick="handleAuthClick()">Authorize Google Drive</button>
         <div class="status">
             <p id="status-text"></p>
             <div class="loader" id="loader"></div>
@@ -104,17 +105,38 @@
                 discoveryDocs: DISCOVERY_DOCS,
                 scope: SCOPES
             }).then(() => {
-                gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-                updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+                const authInstance = gapi.auth2.getAuthInstance();
+                if (authInstance.isSignedIn.get()) {
+                    statusText.innerText = 'You are authorized. You can upload files!';
+                } else {
+                    statusText.innerText = 'You are not authorized. Please authorize to upload files.';
+                }
+                authInstance.isSignedIn.listen(updateSigninStatus);
             }, (error) => {
-                console.log('Error: ', error);
+                console.error('Error initializing Google API: ', error);
             });
         }
 
         function updateSigninStatus(isSignedIn) {
             if (!isSignedIn) {
-                gapi.auth2.getAuthInstance().signIn();
+                statusText.innerText = 'You are not authorized. Please authorize to upload files.';
             }
+        }
+
+        function handleAuthClick() {
+            const authInstance = gapi.auth2.getAuthInstance();
+            authInstance.signIn().then(() => {
+                statusText.innerText = 'Authorized. You can upload files now!';
+            }).catch((error) => {
+                console.error('Error signing in: ', error);
+            });
+        }
+
+        function handleSignOut() {
+            const authInstance = gapi.auth2.getAuthInstance();
+            authInstance.signOut().then(() => {
+                statusText.innerText = 'You have been signed out.';
+            });
         }
 
         async function uploadFileFromUrl() {
@@ -128,19 +150,17 @@
             statusText.innerText = 'Fetching file...';
 
             try {
-                // Fetch the file from the provided URL
                 let response = await fetch(fileUrl);
                 if (!response.ok) {
                     throw new Error('Failed to fetch file from the provided URL');
                 }
-                
+
                 let blob = await response.blob();
                 let fileName = fileUrl.split('/').pop();
                 let fileType = blob.type;
 
                 statusText.innerText = 'Uploading to Google Drive...';
 
-                // Upload the fetched file to Google Drive
                 let metadata = {
                     'name': fileName,
                     'mimeType': fileType
@@ -159,14 +179,19 @@
 
                 let uploadResult = await uploadResponse.json();
                 loader.style.display = 'none';
-                statusText.innerText = `Uploaded successfully! File ID: ${uploadResult.id}`;
+                if (uploadResponse.ok) {
+                    statusText.innerText = `Uploaded successfully! File ID: ${uploadResult.id}`;
+                } else {
+                    throw new Error(uploadResult.error.message);
+                }
             } catch (error) {
                 loader.style.display = 'none';
-                statusText.innerText = 'Failed to upload file from URL!';
+                statusText.innerText = 'Failed to upload file from URL! ' + error.message;
                 console.error('Error:', error);
             }
         }
 
+        window.addEventListener('beforeunload', handleSignOut);
         document.addEventListener('DOMContentLoaded', handleClientLoad);
     </script>
 </body>
