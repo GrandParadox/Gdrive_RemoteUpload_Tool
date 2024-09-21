@@ -1,13 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>My Game</title>
+    <title>Remote Upload Tool</title>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <script src="script.js"></script>
+    <h1>Remote Upload Tool</h1>
+    <input type="text" id="urlInput" placeholder="Enter URL of the file">
+    <button onclick="uploadFile()">Upload</button>
+    <p id="status"></p>
+
+    <script>
+        function uploadFile() {
+            var url = document.getElementById("urlInput").value;
+            var accessToken = "YOUR_ACCESS_TOKEN"; // Replace with your Google Drive access token
+
+            fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=media", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + accessToken,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "name": "uploaded_file",
+                    "mimeType": "image/jpeg",
+                    "parents": ["YOUR_PARENT_FOLDER_ID"], // Replace with your Google Drive folder ID
+                    "fileUrl": url
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error uploading file");
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById("status").innerText = "File uploaded successfully";
+            })
+            .catch(error => {
+                document.getElementById("status").innerText = error.message;
+            });
+        }
+    </script>
 </body>
-</html>
+    </html>
