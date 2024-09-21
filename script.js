@@ -39,24 +39,32 @@ function initClient() {
 function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
         token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-        document.getElementById('authButton').innerText = 'Sign out of Google Drive';
+        document.getElementById('authButton').style.display = 'none';
+        document.getElementById('signOutButton').style.display = 'block'; // Show sign-out button
         document.getElementById('uploadSection').style.display = 'block'; // Show upload section
     } else {
         token = null;
-        document.getElementById('authButton').innerText = 'Authorize Google Drive';
+        document.getElementById('authButton').style.display = 'block'; // Show authorize button
+        document.getElementById('signOutButton').style.display = 'none'; // Hide sign-out button
         document.getElementById('uploadSection').style.display = 'none'; // Hide upload section
     }
 }
 
 /**
- * Handle authorization button click
+ * Handle authorization button click (sign in)
  */
 document.getElementById('authButton').onclick = () => {
-    if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-        gapi.auth2.getAuthInstance().signOut();
-    } else {
-        gapi.auth2.getAuthInstance().signIn();
-    }
+    gapi.auth2.getAuthInstance().signIn();
+};
+
+/**
+ * Handle sign-out button click
+ */
+document.getElementById('signOutButton').onclick = () => {
+    gapi.auth2.getAuthInstance().signOut().then(() => {
+        console.log('User signed out.');
+        updateSigninStatus(false); // Manually update the UI to reflect sign-out
+    });
 };
 
 /**
