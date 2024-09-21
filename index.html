@@ -93,6 +93,7 @@
 
         let statusText = document.getElementById('status-text');
         let loader = document.getElementById('loader');
+        let isAuthorized = false;
 
         function handleClientLoad() {
             gapi.load('client:auth2', initClient);
@@ -106,11 +107,8 @@
                 scope: SCOPES
             }).then(() => {
                 const authInstance = gapi.auth2.getAuthInstance();
-                if (authInstance.isSignedIn.get()) {
-                    statusText.innerText = 'You are authorized. You can upload files!';
-                } else {
-                    statusText.innerText = 'You are not authorized. Please authorize to upload files.';
-                }
+                isAuthorized = authInstance.isSignedIn.get();
+                updateStatus();
                 authInstance.isSignedIn.listen(updateSigninStatus);
             }, (error) => {
                 console.error('Error initializing Google API: ', error);
@@ -118,24 +116,37 @@
         }
 
         function updateSigninStatus(isSignedIn) {
-            if (!isSignedIn) {
+            isAuthorized = isSignedIn;
+            updateStatus();
+        }
+
+        function updateStatus() {
+            if (isAuthorized) {
+                statusText.innerText = 'You are authorized. You can upload files!';
+                document.getElementById('authorize-button').style.display = 'none';
+            } else {
                 statusText.innerText = 'You are not authorized. Please authorize to upload files.';
+                document.getElementById('authorize-button').style.display = 'block';
             }
         }
 
         function handleAuthClick() {
             const authInstance = gapi.auth2.getAuthInstance();
-            authInstance.signIn().then(() => {
-                statusText.innerText = 'Authorized. You can upload files now!';
-            }).catch((error) => {
-                console.error('Error signing in: ', error);
-            });
+            if (!isAuthorized) {
+                authInstance.signIn().then(() => {
+                    isAuthorized = true;
+                    updateStatus();
+                }).catch((error) => {
+                    console.error('Error signing in: ', error);
+                });
+            }
         }
 
         function handleSignOut() {
             const authInstance = gapi.auth2.getAuthInstance();
             authInstance.signOut().then(() => {
-                statusText.innerText = 'You have been signed out.';
+                isAuthorized = false;
+                updateStatus();
             });
         }
 
@@ -157,7 +168,7 @@
 
                 let blob = await response.blob();
                 let fileName = fileUrl.split('/').pop();
-                let fileType = blob.type;
+                let fileType = blob.type || 'application/octet-stream';
 
                 statusText.innerText = 'Uploading to Google Drive...';
 
@@ -177,13 +188,14 @@
                     body: form
                 });
 
-                let uploadResult = await uploadResponse.json();
-                loader.style.display = 'none';
-                if (uploadResponse.ok) {
-                    statusText.innerText = `Uploaded successfully! File ID: ${uploadResult.id}`;
-                } else {
+                if (!uploadResponse.ok) {
+                    let uploadResult = await uploadResponse.json();
                     throw new Error(uploadResult.error.message);
                 }
+
+                let uploadResult = await uploadResponse.json();
+                loader.style.display = 'none';
+                statusText.innerText = `Uploaded successfully! File ID: ${uploadResult.id}`;
             } catch (error) {
                 loader.style.display = 'none';
                 statusText.innerText = 'Failed to upload file from URL! ' + error.message;
