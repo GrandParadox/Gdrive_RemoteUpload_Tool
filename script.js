@@ -9,7 +9,6 @@ let token;
  * Load the Google API client library and initialize it
  */
 function handleClientLoad() {
-    console.log("Loading Google API...");
     gapi.load('client:auth2', initClient);
 }
 
@@ -17,15 +16,12 @@ function handleClientLoad() {
  * Initialize the API client library and set up sign-in state listeners
  */
 function initClient() {
-    console.log("Initializing Google API client...");
     gapi.client.init({
         apiKey: API_KEY,
         clientId: CLIENT_ID,
         discoveryDocs: DISCOVERY_DOCS,
         scope: SCOPES
     }).then(() => {
-        console.log("Google API initialized successfully.");
-        
         // Listen for sign-in state changes
         gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
 
@@ -41,13 +37,14 @@ function initClient() {
  * @param {boolean} isSignedIn
  */
 function updateSigninStatus(isSignedIn) {
-    console.log("Sign-in status updated: ", isSignedIn);
     if (isSignedIn) {
         token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
         document.getElementById('authButton').innerText = 'Sign out of Google Drive';
+        document.getElementById('uploadSection').style.display = 'block'; // Show upload section
     } else {
         token = null;
         document.getElementById('authButton').innerText = 'Authorize Google Drive';
+        document.getElementById('uploadSection').style.display = 'none'; // Hide upload section
     }
 }
 
@@ -56,11 +53,90 @@ function updateSigninStatus(isSignedIn) {
  */
 document.getElementById('authButton').onclick = () => {
     if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-        // If already signed in, sign out
         gapi.auth2.getAuthInstance().signOut();
     } else {
-        // Sign in if not signed in
-        console.log("Attempting to sign in...");
         gapi.auth2.getAuthInstance().signIn();
     }
 };
+
+/**
+ * Handle file upload button click
+ */
+document.getElementById('uploadButton').onclick = async () => {
+    const fileUrl = document.getElementById('fileUrl').value;
+    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
+    const message = document.getElementById('message');
+    const loading = document.getElementById('loading');
+
+    if (!fileUrl) {
+        alert('Please enter a file URL');
+        return;
+    }
+
+    // Show progress bar and loading spinner
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    loading.style.display = 'block';
+    message.innerText = 'Uploading...';
+
+    try {
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        const metadata = {
+            name: fileUrl.split('/').pop(),
+            mimeType: blob.type,
+        };
+
+        // Prepare form data for upload
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', blob);
+
+        const uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+
+        // Make an XMLHttpRequest to upload the file to Google Drive
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+            }
+        };
+
+        xhr.onload = () => {
+            loading.style.display = 'none';
+            if (xhr.status === 200) {
+                message.innerText = 'Upload complete!';
+                displayUploadedFile(metadata.name);
+            } else {
+                message.innerText = 'Error uploading file! Please try again.';
+            }
+        };
+
+        xhr.onerror = () => {
+            loading.style.display = 'none';
+            message.innerText = 'Upload failed. Please check your URL or network connection.';
+        };
+
+        xhr.send(form);
+
+    } catch (error) {
+        loading.style.display = 'none';
+        message.innerText = 'Error: ' + error.message;
+    }
+};
+
+/**
+ * Display uploaded file information
+ * @param {string} fileName 
+ */
+function displayUploadedFile(fileName) {
+    const uploadedFiles = document.getElementById('uploadedFiles');
+    const fileItem = document.createElement('div');
+    fileItem.innerText = `Uploaded: ${fileName}`;
+    uploadedFiles.appendChild(fileItem);
+}
