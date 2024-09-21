@@ -29,20 +29,16 @@
             font-size: 1.8em;
             color: #ffcc00;
         }
-        input[type="file"] {
-            display: none;
-        }
-        .custom-file-upload {
-            border: 1px solid #ffcc00;
+        input[type="text"], input[type="url"] {
+            width: 100%;
             padding: 10px;
-            display: inline-block;
-            cursor: pointer;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ffcc00;
             border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .custom-file-upload:hover {
-            background-color: #ffcc00;
-            color: #333;
+            box-sizing: border-box;
+            background-color: #444;
+            color: white;
         }
         button {
             background-color: #ffcc00;
@@ -78,13 +74,9 @@
 </head>
 <body>
     <div id="app">
-        <h1>Google Drive Uploader</h1>
-        <label class="custom-file-upload">
-            <input id="file-input" type="file" />
-            Choose File to Upload
-        </label>
-        <br><br>
-        <button id="upload-button" onclick="uploadFile()">Upload</button>
+        <h1>Google Drive Remote Uploader</h1>
+        <input type="url" id="file-url" placeholder="Paste file URL (e.g., https://example.com/image.jpg)">
+        <button id="upload-url-button" onclick="uploadFileFromUrl()">Upload from URL</button>
         <div class="status">
             <p id="status-text"></p>
             <div class="loader" id="loader"></div>
@@ -98,7 +90,6 @@
         let DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
         let SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-        let fileInput = document.getElementById('file-input');
         let statusText = document.getElementById('status-text');
         let loader = document.getElementById('loader');
 
@@ -121,46 +112,59 @@
         }
 
         function updateSigninStatus(isSignedIn) {
-            if (isSignedIn) {
-                console.log('Signed in');
-            } else {
+            if (!isSignedIn) {
                 gapi.auth2.getAuthInstance().signIn();
             }
         }
 
-        function uploadFile() {
-            let file = fileInput.files[0];
-            if (!file) {
-                statusText.innerText = 'Please choose a file first!';
+        async function uploadFileFromUrl() {
+            let fileUrl = document.getElementById('file-url').value;
+            if (!fileUrl) {
+                statusText.innerText = 'Please provide a file URL!';
                 return;
             }
 
             loader.style.display = 'block';
-            statusText.innerText = 'Uploading...';
+            statusText.innerText = 'Fetching file...';
 
-            let metadata = {
-                'name': file.name,
-                'mimeType': file.type
-            };
+            try {
+                // Fetch the file from the provided URL
+                let response = await fetch(fileUrl);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch file from the provided URL');
+                }
+                
+                let blob = await response.blob();
+                let fileName = fileUrl.split('/').pop();
+                let fileType = blob.type;
 
-            let accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-            let form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            form.append('file', file);
+                statusText.innerText = 'Uploading to Google Drive...';
 
-            fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                method: 'POST',
-                headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-                body: form
-            }).then((response) => response.json())
-            .then((result) => {
+                // Upload the fetched file to Google Drive
+                let metadata = {
+                    'name': fileName,
+                    'mimeType': fileType
+                };
+
+                let accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+                let form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                form.append('file', blob);
+
+                let uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                    method: 'POST',
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                    body: form
+                });
+
+                let uploadResult = await uploadResponse.json();
                 loader.style.display = 'none';
-                statusText.innerText = `Uploaded! File ID: ${result.id}`;
-            }).catch((error) => {
+                statusText.innerText = `Uploaded successfully! File ID: ${uploadResult.id}`;
+            } catch (error) {
                 loader.style.display = 'none';
-                statusText.innerText = 'Upload failed!';
+                statusText.innerText = 'Failed to upload file from URL!';
                 console.error('Error:', error);
-            });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', handleClientLoad);
